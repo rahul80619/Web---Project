@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎵 Music Player</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: black;
+      overflow: hidden;
+      color: white;
+    }
+
+    .stars {
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      background: rgb(99, 18, 52);
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: moveStars linear infinite;
+    }
+
+    @keyframes moveStars {
+      from {
+        transform: translateY(-10vh);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(110vh);
+        opacity: 0.2;
+      }
+    }
+
+    
+    .player {
+      position: relative;
+      background: rgba(60, 11, 119, 0.9);
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0px 10px 25px rgba(0,0,0,0.8);
+      width: 350px;
+      transition: transform 0.4s ease-in-out;
+      z-index: 1;
+    }
+
+    .player:hover {
+      transform: scale(1.05);
+    }
+
+    .cover {
+      width: 250px;
+      height: 250px;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 0 auto 20px;
+      box-shadow: 0px 5px 20px rgba(0,0,0,0.6);
+    }
+
+    .cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 2s linear;
+    }
+
+    .player.playing .cover img {
+      transform: rotate(360deg);
+    }
+
+    h2 {
+      margin: 10px 0 5px;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin: 0 0 20px;
+      font-weight: 400;
+      font-size: 16px;
+      color: #aaa;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: #444;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 15px 0;
+    }
+
+    .progress {
+      height: 6px;
+      background: #1db954;
+      width: 0%;
+      border-radius: 5px;
+      transition: width 0.2s;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 15px;
+    }
+
+    .btn {
+      background: #333;
+      border: none;
+      color: white;
+      font-size: 22px;
+      padding: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn:hover {
+      background: #1db954;
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="player" id="player">
+    <div class="cover">
+      <img id="cover" src="https://i.ibb.co/8D6PgZx/music1.jpg" alt="Album Cover">
+    </div>
+    <h2 id="title">Song Title</h2>
+    <h3 id="artist">Artist Name</h3>
+
+    <div class="progress-container" id="progress-container">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="prev">⏮</button>
+      <button class="btn" id="play">▶️</button>
+      <button class="btn" id="next">⏭</button>
+    </div>
+  </div>
+
+  <script>
+    const player = document.getElementById("player");
+    const playBtn = document.getElementById("play");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const audio = new Audio();
+    const title = document.getElementById("title");
+    const artist = document.getElementById("artist");
+    const cover = document.getElementById("cover");
+    const progressContainer = document.getElementById("progress-container");
+    const progress = document.getElementById("progress");
+
+    const songs = [
+      {
+        title: "Faded",
+        artist: "Alan Walker",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        cover: "https://www.freevector.com/uploads/vector/preview/14310/FreeVector-Music-Icon.jpg"
+      },
+      {
+        title: "Spectre",
+        artist: "Alan Walker",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        cover: "https://img.freepik.com/premium-vector/music-icon-vector_382585-72.jpg"
+      },
+      {
+        title: "On My Way",
+        artist: "Alan Walker",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        cover: "https://img.freepik.com/premium-vector/black-music-icon-round-isolated-button-vector-illustration_541075-897.jpg"
+      }
+    ];
+
+    let songIndex = 0;
+
+    function loadSong(song) {
+      title.textContent = song.title;
+      artist.textContent = song.artist;
+      cover.src = song.cover;
+      audio.src = song.src;
+    }
+
+    function playSong() {
+      player.classList.add("playing");
+      playBtn.textContent = "⏸";
+      audio.play();
+    }
+
+    function pauseSong() {
+      player.classList.remove("playing");
+      playBtn.textContent = "▶️";
+      audio.pause();
+    }
+
+    playBtn.addEventListener("click", () => {
+      const isPlaying = player.classList.contains("playing");
+      if (isPlaying) {
+        pauseSong();
+      } else {
+        playSong();
+      }
+    });
+
+    nextBtn.addEventListener("click", nextSong);
+    prevBtn.addEventListener("click", prevSong);
+
+    function nextSong() {
+      songIndex++;
+      if (songIndex > songs.length - 1) {
+        songIndex = 0;
+      }
+      loadSong(songs[songIndex]);
+      playSong();
+    }
+
+    function prevSong() {
+      songIndex--;
+      if (songIndex < 0) {
+        songIndex = songs.length - 1;
+      }
+      loadSong(songs[songIndex]);
+      playSong();
+    }
+
+    audio.addEventListener("timeupdate", updateProgress);
+
+    function updateProgress(e) {
+      const { duration, currentTime } = e.srcElement;
+      const percent = (currentTime / duration) * 100;
+      progress.style.width = percent + "%";
+    }
+
+    progressContainer.addEventListener("click", setProgress);
+
+    function setProgress(e) {
+      const width = this.clientWidth;
+      const clickX = e.offsetX;
+      const duration = audio.duration;
+      audio.currentTime = (clickX / width) * duration;
+    }
+
+    audio.addEventListener("ended", nextSong);
+
+   
+    loadSong(songs[songIndex]);
+
+    const starsContainer = document.getElementById("stars");
+    function createStars() {
+      for (let i = 0; i < 80; i++) {
+        const star = document.createElement("div");
+        star.classList.add("star");
+        const size = Math.random() * 3 + 1 + "px";
+        star.style.width = size;
+        star.style.height = size;
+        star.style.left = Math.random() * 100 + "vw";
+        star.style.top = Math.random() * -100 + "vh";
+        star.style.animationDuration = Math.random() * 5 + 5 + "s";
+        star.style.animationDelay = Math.random() * 5 + "s";
+        starsContainer.appendChild(star);
+      }
+    }
+    createStars();
+  </script>
+</body>
+</html>
