@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .quiz-container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .question {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .options {
+      list-style: none;
+      padding: 0;
+    }
+
+    .options li {
+      margin: 8px 0;
+    }
+
+    .options button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #4facfe;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .options button:hover {
+      background: #007bff;
+    }
+
+    #nextBtn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #ff9800;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #nextBtn:hover {
+      background: #e68900;
+    }
+
+    .result {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Quiz App</h1>
+    <div id="quiz">
+      <div class="question" id="question">Question text</div>
+      <ul class="options" id="options"></ul>
+      <button id="nextBtn" onclick="nextQuestion()">Next</button>
+    </div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Who is known as the King of Bollywood ?",
+        options: ["Salman Khan", "Aamir Khan", "Shah Rukh Khan", "Akshay Kumar"],
+        answer: "Shah Rukh Khan"
+      },
+      {
+        question: "Which was the first Indian sound film (talkie)?",
+        options: [
+          "Sholay",
+          "Raja Harishchandra",
+          "Alam Ara",
+          "Mother India"
+        ],
+        answer: "Alam Ara"
+      },
+      {
+        question: "Which Bollywood movie is the longest-running film in Indian cinema?",
+        options: [
+          "Kabhi Khushi Kabhie Gham",
+          "Mughal-e-Azam",
+          "Sholay",
+          "Dilwale Dulhania Le Jayenge"
+        ],
+        answer: "Dilwale Dulhania Le Jayenge"
+      },
+      {
+        question: "Who composed the music for the movie Lagaan?",
+        options: ["Anu Malik", "A.R. Rahman", "Shankar Ehsaan Loy", "R.D. Burman"],
+        answer: "A.R. Rahman"
+      }
+      
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const nextBtn = document.getElementById("nextBtn");
+    const resultEl = document.getElementById("result");
+
+    function loadQuestion() {
+      const q = quizData[currentQuestion];
+      questionEl.textContent = q.question;
+      optionsEl.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => selectAnswer(btn, q.answer);
+        const li = document.createElement("li");
+        li.appendChild(btn);
+        optionsEl.appendChild(li);
+      });
+    }
+
+    function selectAnswer(button, correctAnswer) {
+      const buttons = document.querySelectorAll(".options button");
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAnswer) {
+          btn.style.background = "green";
+        }
+      });
+
+      if (button.textContent === correctAnswer) {
+        score++;
+      } else {
+        button.style.background = "red";
+      }
+
+      nextBtn.style.display = "block";
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < quizData.length) {
+        loadQuestion();
+        nextBtn.style.display = "none";
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      document.getElementById("quiz").style.display = "none";
+      resultEl.textContent = `You scored ${score} out of ${quizData.length}! 🎉`;
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>
