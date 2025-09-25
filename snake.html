@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Retro Snake — HTML / CSS / JS</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#00e0a1; --accent-2:#7c3aed; --muted:#98a0b3; --glass: rgba(255,255,255,0.04);
+      --radius:14px; --mono: 'Courier New', monospace;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, Roboto, 'Segoe UI', sans-serif;background:linear-gradient(180deg,#041021 0%, #071426 60%);color:#e6eef6}
+
+    .app{
+      min-height:100vh;display:grid;grid-template-columns:420px 1fr;gap:28px;align-items:center;padding:48px;
+    }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);padding:26px;border:1px solid rgba(255,255,255,0.03);backdrop-filter: blur(6px);
+      box-shadow: 0 6px 30px rgba(8,12,20,0.6);
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#06111a;font-family:var(--mono);font-size:20px;box-shadow:0 6px 18px rgba(124,58,237,0.14), inset 0 -6px 18px rgba(0,0,0,0.15)}
+    h1{font-size:20px;margin:0}
+    p.lead{color:var(--muted);margin:6px 0 18px;font-size:13px}
+
+    .group{margin-bottom:18px}
+    label.opt-label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+    .option-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease}
+    .option-btn:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+    .option-btn.active{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#021520;font-weight:700;border:none}
+
+    .stats{display:flex;gap:12px;margin-top:12px}
+    .stat{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:10px;text-align:center}
+    .stat .num{font-size:20px;font-weight:700}
+    .stat .label{font-size:12px;color:var(--muted)}
+
+    
+    .stage-wrap{display:flex;flex-direction:column;gap:18px}
+    .stage-header{display:flex;justify-content:space-between;align-items:center}
+    .stage{background:linear-gradient(180deg,#071426 0%, #06121b 100%);border-radius:18px;padding:18px;display:flex;gap:18px;align-items:center}
+    .game-canvas{background:linear-gradient(180deg,#051428,#06202b);border-radius:12px;padding:12px;box-shadow:inset 0 0 40px rgba(0,0,0,0.5);display:inline-block}
+
+    #game{display:block;background:#08151b;border-radius:8px}
+
+    .controls{display:flex;gap:10px}
+    .primary{padding:10px 14px;border-radius:10px;background:var(--accent);border:none;color:#021520;font-weight:700;cursor:pointer}
+    .secondary{padding:10px 14px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.06);cursor:pointer;color:var(--muted)}
+
+    .tips{color:var(--muted);font-size:13px;margin-top:12px}
+
+    .stars{position:absolute;inset:0;z-index:-1;pointer-events:none}
+    .star{position:absolute;width:4px;height:4px;background:rgba(255,255,255,0.06);border-radius:50%;filter:blur(.6px);animation:twinkle 6s infinite}
+    @keyframes twinkle{0%{opacity:.1;transform:scale(.7)}50%{opacity:1;transform:scale(1)}100%{opacity:.1;transform:scale(.7)}}
+
+    @media (max-width:980px){.app{grid-template-columns:1fr;padding:18px}.panel{order:2}.stage-wrap{order:1}}
+  </style>
+</head>
+<body>
+  <div class="stars" aria-hidden>
+    <div class="star" style="left:8%;top:12%;animation-duration:5s"></div>
+    <div class="star" style="left:22%;top:38%;animation-duration:8s"></div>
+    <div class="star" style="left:70%;top:20%;animation-duration:7s"></div>
+    <div class="star" style="left:88%;top:70%;animation-duration:6s"></div>
+    <div class="star" style="left:44%;top:78%;animation-duration:9s"></div>
+  </div>
+
+  <div class="app">
+    <aside class="panel">
+      <div class="brand">
+        <div class="logo">SNAK</div>
+        <div>
+          <h1>Retro Snake</h1>
+          <p class="lead">Classic arcade snake with modern UI — pick mode, difficulty & progress through levels.</p>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="opt-label">Game type</label>
+        <div class="btn-row" id="modeBtns">
+          <button class="option-btn active" data-mode="classic">Classic (walls)</button>
+          <button class="option-btn" data-mode="wrap">Wrap (portal)</button>
+          <button class="option-btn" data-mode="obstacle">Obstacle</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="opt-label">Difficulty</label>
+        <div class="btn-row" id="diffBtns">
+          <button class="option-btn" data-diff="1">Easy</button>
+          <button class="option-btn active" data-diff="2">Medium</button>
+          <button class="option-btn" data-diff="3">Hard</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="opt-label">Level</label>
+        <div class="btn-row" id="levelBtns">
+          <button class="option-btn active" data-level="1">1</button>
+          <button class="option-btn" data-level="2">2</button>
+          <button class="option-btn" data-level="3">3</button>
+          <button class="option-btn" data-level="4">4</button>
+          <button class="option-btn" data-level="5">5</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="opt-label">Controls</label>
+        <div class="tips">Use arrow keys or WASD. On mobile, tap on-screen arrows that appear while playing.</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="num" id="score">0</div><div class="label">Score</div></div>
+        <div class="stat"><div class="num" id="level">1</div><div class="label">Level</div></div>
+        <div class="stat"><div class="num" id="hs">0</div><div class="label">Highscore</div></div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button id="startBtn" class="primary">Start</button>
+        <button id="pauseBtn" class="secondary">Pause</button>
+        <button id="resetBtn" class="secondary">Reset</button>
+      </div>
+
+      <p class="tips" style="margin-top:14px">Tip: Eating apples grows the snake. Reach score targets to advance levels. Obstacle mode spawns blockers.</p>
+    </aside>
+
+    <main class="stage-wrap">
+      <div class="stage-header">
+        <div style="display:flex;flex-direction:column">
+          <h2 style="margin:0">Playfield</h2>
+          <div class="tips">Grid-based canvas, retro pixel look. Colorful glow and animated UI.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="tips" id="status">Ready</div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="game-canvas">
+          <canvas id="game" width="480" height="480"></canvas>
+        </div>
+        <div style="flex:1;min-height:200px;display:flex;flex-direction:column;justify-content:center;gap:14px;padding-right:18px">
+          <div style="background:var(--glass);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)">
+            <div style="font-weight:700">How to play</div>
+            <div class="tips">Navigate the snake to eat apples. Colliding with wall (classic) or self ends the game. In wrap mode you can loop through edges. Use difficulty to change speed.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:12px;border-radius:10px">
+              <div style="font-weight:700">Mode effects</div>
+              <div class="tips">Classic: walls kill. Wrap: edges loop. Obstacle: static blocks appear.</div>
+            </div>
+            <div style="background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:12px;border-radius:10px">
+              <div style="font-weight:700">Progression</div>
+              <div class="tips">Each level increases speed and spawns more apples & (optionally) obstacles.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 16; 
+    const cols = canvas.width / gridSize; const rows = canvas.height / gridSize;
+
+    let state = {
+      mode: 'classic', 
+      difficulty: 2, 
+      level: 1,
+      speed: 8, 
+      running: false,
+      direction: 'right',
+      snake: [],
+      apple: null,
+      obstacles: [],
+      score: 0,
+      highscore: 0,
+      tick: 0
+    };
+
+    state.highscore = parseInt(localStorage.getItem('retroSnakeHigh') || '0',10);
+    document.getElementById('hs').innerText = state.highscore;
+
+    function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+    function samePos(a,b){return a.x===b.x && a.y===b.y}
+
+    document.querySelectorAll('#modeBtns .option-btn').forEach(btn=>btn.addEventListener('click',()=>{setMode(btn.dataset.mode)}));
+    document.querySelectorAll('#diffBtns .option-btn').forEach(btn=>btn.addEventListener('click',()=>{setDifficulty(parseInt(btn.dataset.diff))}));
+    document.querySelectorAll('#levelBtns .option-btn').forEach(btn=>btn.addEventListener('click',()=>{setLevel(parseInt(btn.dataset.level))}));
+    document.getElementById('startBtn').addEventListener('click',startGame);
+    document.getElementById('pauseBtn').addEventListener('click',togglePause);
+    document.getElementById('resetBtn').addEventListener('click',resetGame);
+
+    function setMode(m){state.mode=m; document.querySelectorAll('#modeBtns .option-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===m)); updateStatus();}
+    function setDifficulty(d){state.difficulty=d; document.querySelectorAll('#diffBtns .option-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.diff)===d)); updateStatus();}
+    function setLevel(l){state.level=l; document.querySelectorAll('#levelBtns .option-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.level)===l)); document.getElementById('level').innerText = l; updateStatus();}
+
+    function updateStatus(){document.getElementById('status').innerText = `${state.mode.toUpperCase()} — ${['Easy','Medium','Hard'][state.difficulty-1]} — L${state.level}`}
+    updateStatus();
+
+    function initSnake(){
+      const startLen = 4 + (state.level-1);
+      const startX = Math.floor(cols/2);
+      const startY = Math.floor(rows/2);
+      state.snake = [];
+      for(let i=0;i<startLen;i++) state.snake.push({x:startX - i, y:startY});
+      state.direction = 'right';
+    }
+
+    function placeApple(){
+      let pos;
+      while(true){
+        pos = {x:randInt(1,cols-2), y:randInt(1,rows-2)};
+        if(state.snake.some(s=>samePos(s,pos))) continue;
+        if(state.obstacles.some(o=>samePos(o,pos))) continue;
+        break;
+      }
+      state.apple = pos;
+    }
+
+    function placeObstacles(){
+      state.obstacles = [];
+      if(state.mode !== 'obstacle') return;
+      const count = Math.min(10, Math.floor(state.level * 1.5) + state.difficulty);
+      for(let i=0;i<count;i++){
+        let pos;
+        while(true){
+          pos = {x:randInt(2, cols-3), y:randInt(2, rows-3)};
+          if(state.snake.some(s=>samePos(s,pos))) continue;
+          if(state.apple && samePos(state.apple,pos)) continue;
+          if(state.obstacles.some(o=>samePos(o,pos))) continue;
+          break;
+        }
+        state.obstacles.push(pos);
+      }
+    }
+
+    function resetGame(){
+      state.running=false; state.score=0; state.tick=0; state.level = parseInt(document.querySelector('#levelBtns .option-btn.active').dataset.level);
+      document.getElementById('score').innerText = state.score; document.getElementById('level').innerText = state.level;
+      initSnake(); placeApple(); placeObstacles(); render(); updateStatus();
+    }
+
+    
+    function getSpeed(){
+      const base = 6 + state.difficulty*2; 
+      return base + (state.level-1)*2;
+    }
+
+    function startGame(){
+      if(!state.running){
+        state.running = true; state.tick = 0; state.level = parseInt(document.querySelector('#levelBtns .option-btn.active').dataset.level);
+        initSnake(); placeApple(); placeObstacles(); updateStatus();
+      }
+    }
+
+    function togglePause(){ state.running = !state.running; document.getElementById('status').innerText = state.running ? 'Playing' : 'Paused'; }
+
+    function gameOver(){
+      state.running = false;
+      document.getElementById('status').innerText = 'Game Over';
+      if(state.score > state.highscore){ state.highscore = state.score; localStorage.setItem('retroSnakeHigh', state.highscore); document.getElementById('hs').innerText = state.highscore }
+      canvas.style.boxShadow = '0 0 18px 6px rgba(255,80,80,0.12)';
+      setTimeout(()=> canvas.style.boxShadow = '', 600);
+    }
+
+    function step(){
+      if(!state.running) return;
+      state.tick++;
+      const fps = getSpeed();
+      if(state.tick % Math.max(1, Math.floor(60/fps)) !== 0) return;
+
+
+      const head = {...state.snake[0]};
+      if(state.direction==='left') head.x--;
+      if(state.direction==='right') head.x++;
+      if(state.direction==='up') head.y--;
+      if(state.direction==='down') head.y++;
+
+      
+      if(state.mode === 'wrap'){
+        if(head.x < 0) head.x = cols-1;
+        if(head.x >= cols) head.x = 0;
+        if(head.y < 0) head.y = rows-1;
+        if(head.y >= rows) head.y = 0;
+      } else {
+        if(head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows){ gameOver(); return; }
+      }
+
+      
+      if(state.obstacles.some(o=>samePos(o,head))){ gameOver(); return; }
+
+      
+      if(state.snake.some((s,idx)=>idx>0 && samePos(s,head))){ gameOver(); return; }
+
+      
+      state.snake.unshift(head);
+
+      
+      if(samePos(head, state.apple)){
+        state.score += 10 * state.difficulty; document.getElementById('score').innerText = state.score;
+        
+        const threshold = state.level * 50 * state.difficulty;
+        if(state.score >= threshold){ state.level++; document.getElementById('level').innerText = state.level; placeObstacles(); }
+        placeApple();
+        
+        spawnPulse(head.x, head.y);
+      } else {
+        
+        state.snake.pop();
+      }
+
+      render();
+    }
+
+    
+    function render(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      
+      ctx.fillStyle = '#081a20';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      
+      state.obstacles.forEach(o=>{
+        drawCell(o.x,o.y,'#3b2c2c', true);
+      })
+
+      
+      if(state.apple){
+        drawCell(state.apple.x, state.apple.y, '#ff6b6b', true, true);
+      }
+
+      
+      for(let i=0;i<state.snake.length;i++){
+        const s = state.snake[i];
+        const t = i===0 ? 1 : Math.max(0.6, 1 - i*0.05);
+        drawCell(s.x, s.y, `rgba(0,224,161,${t})`, false, false, i===0);
+      }
+
+      
+      ctx.font = '12px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillText(`Mode: ${state.mode}`, 8, 14);
+    }
+
+    function drawCell(cx, cy, color, solid=true, glow=false, isHead=false){
+      const x = cx*gridSize; const y = cy*gridSize; const pad = 2;
+      
+      if(glow){
+        ctx.save(); ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 18; ctx.fillRect(x+pad, y+pad, gridSize-pad*2, gridSize-pad*2); ctx.restore();
+      }
+      
+      ctx.save();
+      if(solid){
+        ctx.fillStyle = color;
+        roundRect(ctx, x+pad, y+pad, gridSize-pad*2, gridSize-pad*2, 4);
+        ctx.fill();
+      } else {
+        
+        const g = ctx.createLinearGradient(x, y, x+gridSize, y+gridSize);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'rgba(0,0,0,0.08)');
+        ctx.fillStyle = g;
+        roundRect(ctx, x+pad, y+pad, gridSize-pad*2, gridSize-pad*2, isHead?6:3);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      ctx.beginPath(); ctx.moveTo(x+r, y); ctx.arcTo(x+w, y, x+w, y+h, r); ctx.arcTo(x+w, y+h, x, y+h, r); ctx.arcTo(x, y+h, x, y, r); ctx.arcTo(x, y, x+w, y, r); ctx.closePath();
+    }
+
+    const opposite = {left:'right', right:'left', up:'down', down:'up'};
+    window.addEventListener('keydown', e=>{
+      const k = e.key.toLowerCase();
+      if(['arrowleft','a'].includes(e.key.toLowerCase())) setDir('left');
+      if(['arrowright','d'].includes(e.key.toLowerCase())) setDir('right');
+      if(['arrowup','w'].includes(e.key.toLowerCase())) setDir('up');
+      if(['arrowdown','s'].includes(e.key.toLowerCase())) setDir('down');
+      if(k==='p') togglePause();
+      if(k==='r') resetGame();
+    });
+
+    function setDir(d){ if(opposite[d] === state.direction) return; state.direction = d }
+
+    let touchStart = null;
+    canvas.addEventListener('touchstart', (e)=>{ touchStart = e.touches[0]; });
+    canvas.addEventListener('touchmove', (e)=>{
+      if(!touchStart) return; const t = e.touches[0]; const dx = t.clientX - touchStart.clientX; const dy = t.clientY - touchStart.clientY;
+      if(Math.abs(dx) > Math.abs(dy)) setDir(dx>0?'right':'left'); else setDir(dy>0?'down':'up');
+    });
+    canvas.addEventListener('touchend', ()=>{ touchStart = null });
+
+    function spawnPulse(gx, gy){
+      const x = gx*gridSize + gridSize/2; const y = gy*gridSize + gridSize/2; let r=0; const maxR = gridSize*1.6; const id = setInterval(()=>{
+        render(); ctx.save(); ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,'+ (0.12*(1 - r/maxR)) +')'; ctx.fill(); ctx.restore(); r+=2; if(r>maxR){ clearInterval(id); render() }
+      }, 16)
+    }
+
+
+    function loop(){ step(); requestAnimationFrame(loop); }
+    loop();
+
+    
+    resetGame();
+
+  </script>
+</body>
+</html>
