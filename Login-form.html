@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: black;
+      color: white;
+      position: relative;
+    }
+
+    .starfield {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: url('https://www.transparenttextures.com/patterns/stardust.png');
+      background-size: cover;
+      animation: moveStars 100s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes moveStars {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-800px, -800px); }
+    }
+
+    .solar-system {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1200px;
+      height: 1200px;
+      z-index: 0;
+    }
+
+    .sun {
+      width: 180px;
+      height: 180px;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/4/4c/Sun_white.jpg');
+      background-size: cover;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 80px 40px rgba(255, 200, 0, 0.7);
+    }
+
+    .orbit {
+      position: absolute;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: spin linear infinite;
+    }
+
+    .orbit .planet {
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+    }
+
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .mercury { width: 20px; height: 20px; background-image: url('https://planet-texture-maps.s3.amazonaws.com/mercury.jpg'); }
+    .venus   { width: 35px; height: 35px; background-image: url('https://planet-texture-maps.s3.amazonaws.com/venus.jpg'); }
+    .earth   { width: 40px; height: 40px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg'); }
+    .mars    { width: 30px; height: 30px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg'); }
+    .jupiter { width: 95px; height: 95px; background-image: url('https://planet-texture-maps.s3.amazonaws.com/jupiter.jpg'); }
+    .saturn  { width: 120px; height: 120px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/c7/Saturn_during_Equinox.jpg'); }
+    .uranus  { width: 70px; height: 70px; background-image: url('https://planet-texture-maps.s3.amazonaws.com/uranus.jpg'); }
+    .neptune { width: 65px; height: 65px; background-image: url('https://planet-texture-maps.s3.amazonaws.com/neptune.jpg'); }
+
+    .orbit.mercury { width: 240px; height: 240px; animation-duration: 12s; }
+    .orbit.venus   { width: 320px; height: 320px; animation-duration: 20s; }
+    .orbit.earth   { width: 400px; height: 400px; animation-duration: 30s; }
+    .orbit.mars    { width: 480px; height: 480px; animation-duration: 40s; }
+    .orbit.jupiter { width: 650px; height: 650px; animation-duration: 60s; }
+    .orbit.saturn  { width: 800px; height: 800px; animation-duration: 80s; }
+    .orbit.uranus  { width: 950px; height: 950px; animation-duration: 100s; }
+    .orbit.neptune { width: 1100px; height: 1100px; animation-duration: 120s; }
+
+    /* Login form (foreground) */
+    .login-container {
+      position: relative;
+      z-index: 2; /* Above solar system */
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      text-align: center;
+      width: 350px;
+    }
+
+    .login-container h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
+    .input-box {
+      margin: 15px 0;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      transition: 0.3s ease;
+    }
+
+    .input-box input:focus {
+      background: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 10px #00eaff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      background: linear-gradient(45deg, #00eaff, #0066ff);
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.4s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #00eaff, 0 0 30px #0066ff;
+    }
+
+    .login-container p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .login-container a {
+      color: #00eaff;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .login-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="starfield"></div>
+
+  <div class="solar-system">
+    <div class="sun"></div>
+
+    <div class="orbit mercury"><div class="planet mercury"></div></div>
+    <div class="orbit venus"><div class="planet venus"></div></div>
+    <div class="orbit earth"><div class="planet earth"></div></div>
+    <div class="orbit mars"><div class="planet mars"></div></div>
+    <div class="orbit jupiter"><div class="planet jupiter"></div></div>
+    <div class="orbit saturn"><div class="planet saturn"></div></div>
+    <div class="orbit uranus"><div class="planet uranus"></div></div>
+    <div class="orbit neptune"><div class="planet neptune"></div></div>
+  </div>
+
+  <div class="login-container">
+    <h2>Login</h2>
+    <form>
+      <div class="input-box">
+        <input type="text" placeholder="Username" required>
+      </div>
+      <div class="input-box">
+        <input type="password" placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn">Login</button>
+      <p>Don't have an account? <a href="#">Register</a></p>
+    </form>
+  </div>
+</body>
+</html>
