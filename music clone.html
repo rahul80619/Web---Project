@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Music Streaming UI Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: linear-gradient(135deg,#0f0f0f,#1b1b1b); color: #fff; display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; background: #121212; padding: 20px; display: flex; flex-direction: column; gap: 20px; transition: 0.3s; }
+    .sidebar h2 { font-size: 20px; margin-bottom: 10px; }
+    .sidebar a { color: #aaa; text-decoration: none; margin: 8px 0; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+    .sidebar a:hover { color: #fff; transform: translateX(5px); }
+    .sidebar.collapsed { width: 60px; }
+    .sidebar.collapsed h2, .sidebar.collapsed span { display: none; }
+
+    /* Toggle button */
+    .toggle-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+
+    /* Main Content */
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .navbar { height: 60px; background: #181818; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+    .navbar input { width: 200px; padding: 8px; border-radius: 20px; border: none; outline: none; }
+
+    .content { flex: 1; overflow-y: auto; padding: 20px; }
+    .section-title { font-size: 18px; margin: 20px 0 10px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Add Song */
+    #addSongForm { display: flex; gap: 10px; flex-wrap: wrap; }
+    #addSongForm input { padding: 6px; border-radius: 6px; border: none; outline: none; }
+
+    /* Music Cards */
+    .card-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; }
+    .card { background: #222; border-radius: 12px; padding: 10px; text-align: center; transition: 0.3s; cursor: pointer; }
+    .card img { width: 100%; border-radius: 10px; transition: 0.4s; height: 140px; object-fit: cover; }
+    .card:hover { transform: scale(1.05); background: #333; }
+    .card:hover img { filter: brightness(1.2); }
+    .card p { margin-top: 10px; font-size: 14px; }
+
+    /* Player */
+    .player { height: 80px; background: #181818; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-top: 1px solid #333; }
+    .controls { display: flex; gap: 20px; align-items: center; }
+    .controls button { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; transition: 0.3s; }
+    .controls button:hover { color: #1db954; transform: scale(1.2); }
+    .progress { flex: 1; margin: 0 20px; }
+    .progress input[type="range"] { width: 100%; cursor: pointer; }
+
+    /* Animation background */
+    .animated-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle, rgba(29,185,84,0.15), transparent 60%),
+                  radial-gradient(circle, rgba(255,0,100,0.15), transparent 60%);
+      background-size: 300% 300%;
+      animation: moveBg 10s infinite alternate ease-in-out;
+      z-index: -1;
+    }
+    @keyframes moveBg {
+      0% { background-position: left top; }
+      100% { background-position: right bottom; }
+    }
+
+    /* Responsive */
+    @media(max-width: 768px){
+      .sidebar { position: absolute; left: -220px; top: 0; height: 100%; z-index: 10; }
+      .sidebar.active { left: 0; }
+      .main { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="animated-bg"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>My Music</h2>
+    <a href="#">🏠 <span>Home</span></a>
+    <a href="#">🔥 <span>Trending</span></a>
+    <a href="#">🎵 <span>Playlists</span></a>
+    <a href="#">❤️ <span>Liked Songs</span></a>
+    <a href="#">⚙️ <span>Settings</span></a>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Navbar -->
+    <div class="navbar">
+      <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+      <h2>Music Clone</h2>
+      <input type="text" placeholder="Search...">
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <h3 class="section-title">Recommended</h3>
+      <div class="card-container" id="cardContainer">
+        <div class="card" onclick="playSong('song1.mp3','Song One')">
+          <img src="https://picsum.photos/200?random=1">
+          <p>Song One</p>
+        </div>
+        <div class="card" onclick="playSong('song2.mp3','Song Two')">
+          <img src="https://picsum.photos/200?random=2">
+          <p>Song Two</p>
+        </div>
+      </div>
+
+      <h3 class="section-title">Add Song</h3>
+      <form id="addSongForm">
+        <input type="text" id="songTitle" placeholder="Song Title" required>
+        <input type="file" id="songFile" accept="audio/*" required>
+        <input type="file" id="songImage" accept="image/*" required>
+        <button type="submit">➕ Add</button>
+      </form>
+    </div>
+
+    <!-- Player -->
+    <div class="player">
+      <div class="song-info">🎶 <span id="currentSong">No song playing</span></div>
+      <div class="controls">
+        <button onclick="prevSong()">⏮</button>
+        <button onclick="togglePlay()">⏯</button>
+        <button onclick="nextSong()">⏭</button>
+      </div>
+      <div class="progress">
+        <input type="range" id="progressBar" value="0" min="0" max="100">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    function toggleSidebar() {
+      sidebar.classList.toggle("active");
+      sidebar.classList.toggle("collapsed");
+    }
+
+    let songs = [
+      {file:"song1.mp3", title:"Song One", image:"https://picsum.photos/200?random=1"},
+      {file:"song2.mp3", title:"Song Two", image:"https://picsum.photos/200?random=2"}
+    ];
+
+    let currentIndex = 0;
+    let audio = new Audio();
+    let isPlaying = false;
+
+    function playSong(file, title) {
+      audio.src = file;
+      audio.play();
+      isPlaying = true;
+      document.getElementById("currentSong").innerText = title;
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        audio.pause();
+        isPlaying = false;
+      } else {
+        audio.play();
+        isPlaying = true;
+      }
+    }
+
+    function prevSong() {
+      currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+      playSong(songs[currentIndex].file, songs[currentIndex].title);
+    }
+
+    function nextSong() {
+      currentIndex = (currentIndex + 1) % songs.length;
+      playSong(songs[currentIndex].file, songs[currentIndex].title);
+    }
+
+    const progressBar = document.getElementById("progressBar");
+    audio.addEventListener("timeupdate", () => {
+      if(audio.duration){
+        progressBar.value = (audio.currentTime / audio.duration) * 100;
+      }
+    });
+
+    progressBar.addEventListener("input", () => {
+      audio.currentTime = (progressBar.value / 100) * audio.duration;
+    });
+
+    // Add Song Function
+    document.getElementById("addSongForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const title = document.getElementById("songTitle").value;
+      const fileInput = document.getElementById("songFile");
+      const imgInput = document.getElementById("songImage");
+
+      const file = URL.createObjectURL(fileInput.files[0]);
+      const img = URL.createObjectURL(imgInput.files[0]);
+
+      songs.push({file:file, title:title, image:img});
+      const index = songs.length-1;
+
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.onclick = () => playSong(file, title);
+      card.innerHTML = `<img src="${img}"><p>${title}</p>`;
+      document.getElementById("cardContainer").appendChild(card);
+
+      document.getElementById("addSongForm").reset();
+    });
+  </script>
+</body>
+</html>
